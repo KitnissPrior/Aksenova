@@ -1,12 +1,10 @@
-import statistics as stats
 import report as rep
+import table as vac_table
 
-file_name = input('Введите название файла: ')
-job = input('Введите название профессии: ')
-
-data_set = stats.DataSet(file_name)
-data_set.parse_csv()
-years, cities = data_set.connector.get_statistics(data_set.vacancies_objects, job)
-
-report = rep.Report(job)
-report.generate_pdf(years, cities)
+data_format = input()
+if data_format == 'Статистика':
+    print('Введите данные для печати:')
+    rep.get_report()
+if data_format == 'Вакансии':
+    print('Введите данные для печати:')
+    vac_table.get_vacancies_table()
