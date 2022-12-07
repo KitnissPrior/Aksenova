@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pdfkit
 from jinja2 import Environment, FileSystemLoader
+import statistics as stats
 
 class Report:
     def __init__(self, job):
@@ -219,3 +220,14 @@ class Report:
         config = pdfkit.configuration(wkhtmltopdf=r'D:\wkhtmltopdf\bin\wkhtmltopdf.exe')
 
         self.fill_pdf_with_data(template, config)
+
+def get_report():
+    file_name = input('Введите название файла: ')
+    job = input('Введите название профессии: ')
+
+    data_set = stats.DataSet(file_name)
+    data_set.parse_csv()
+    years, cities = data_set.connector.get_statistics(data_set.vacancies_objects, job)
+
+    report = Report(job)
+    report.generate_pdf(years, cities)
