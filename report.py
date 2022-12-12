@@ -8,7 +8,24 @@ from jinja2 import Environment, FileSystemLoader
 import statistics as stats
 
 class Report:
+    """
+    Класс для представления отчета
+
+    Attributes:
+        job (str): Выбранная профессия
+        wb (WorkBook): содержимое excel-файла с отчетом
+        years_table_headers (list): заголовки таблицы со статистикой по годам
+        years_table (list): таблица со статистикой по годам
+        cities_table_headers (list): заголовки таблицы со статистикой по городам
+        cities_salary_table (list): таблица со статистикой зарплат по городом
+        cities_vacancy_table (list): таблица с данными по долям вакансий по городом
+    """
     def __init__(self, job):
+        """Инициализирует объект Report
+
+        Args:
+            job (str): Выбранная профессия
+        """
         self.job = job
         self.wb = openpyxl.Workbook()
         self.years_table_headers = []
@@ -18,6 +35,7 @@ class Report:
         self.cities_vacancy_table = []
 
     def set_bold_titles(self):
+        """Устанавливает жирный шрифт заголовков таблиц на всех листах excel-файла"""
         for name in self.wb.sheetnames:
             sheet = self.wb[name]
             for i in range(1, sheet.max_column + 1):
@@ -25,6 +43,7 @@ class Report:
                 cell.font = Font(bold=True)
 
     def set_thin_borders(self):
+        """Устанавливает тонкие границы для таблиц на всех листах excel-файла"""
         thin_border = Border(left=Side(style='thin'),
                              right=Side(style='thin'),
                              top=Side(style='thin'),
@@ -39,6 +58,13 @@ class Report:
                         cell.border = thin_border
 
     def add_years_statistics(self, years_statistics, titles, sheet_num):
+        """Добавляет в рабочую книгу excel статистику по годам
+
+        Args:
+            years_statistics (dict): данные статистики по годам
+            titles (list): заголовки для будущей таблицы со статистикой
+            sheet_num (int): номер текущего листа в excel-книге
+        """
         sheet = self.wb.worksheets[sheet_num]
         sheet.append((titles))
         self.years_table_headers = titles
@@ -54,17 +80,31 @@ class Report:
             self.years_table.append(values)
 
     def set_table_format(self):
+        """Настраивает формат таблиц в excel-файле"""
         self.set_bold_titles()
         self.set_thin_borders()
         self.set_columns_width()
 
-    def set_percentage_format(self, sheet_number, columns_count):
+    def set_percentage_format(self, sheet_number, rows_count):
+        """Устанавливает процентный формат данных для столбца с долей вакансий по городам
+        
+        Args:
+            sheet_number (int): номер текущего листа в excel-файле
+            rows_count (int): количество строк в столбце с долей вакансий по городам
+        """
         sheet = self.wb.worksheets[sheet_number]
-        for i in range(1, columns_count):
+        for i in range(1, rows_count):
             cell = sheet.cell(row=i, column=4)
             cell.number_format = numbers.FORMAT_PERCENTAGE_00
 
     def add_cities_statistics(self, cities_statistics, titles, sheet_num):
+        """Добавляет в рабочую книгу excel статистику по городам
+
+        Args:
+            cities_statistics (dict): данные статистики по годам
+            titles (list): заголовки для будущей таблицы со статистикой
+            sheet_num (int): номер текущего листа в excel-книге
+        """
         sheet = self.wb.worksheets[sheet_num]
         sheet.append((titles))
         self.cities_table_headers = titles
@@ -85,6 +125,9 @@ class Report:
         sheet.insert_cols(3, 1)
 
     def set_columns_width(self):
+        """Настраивает ширину столбцов для всех листов excel-файла,
+           чтобы каждый столбец вмещал самую длинную строку в столбце
+        """
         for name in self.wb.sheetnames:
             sheet = self.wb[name]
             dims = {}
@@ -97,6 +140,12 @@ class Report:
                 sheet.column_dimensions[col].width = value
 
     def generate_excel(self, years, cities):
+        """Генерирует excel-файл с отчетом по статистике
+
+        Args:
+            years (dict): статистика вакансий по годам
+            cities (dict): статистика вакансий по городам
+        """
         sheet_1 = self.wb.active
         sheet_1.title = 'Статистика по годам'
         sheet_2 = self.wb.create_sheet('Статистика по городам')
@@ -112,6 +161,17 @@ class Report:
         self.wb.save('report.xlsx')
 
     def plot_bar_chart(self, ax, values1, values2, title, xlabels, label1, label2):
+        """Строит гистограмму статистики для двух графиков
+
+        Args:
+            ax (matplotlib.axes.Axes): область изображения, которую будет занимать гистограмма
+            values1 (list): значения первого графика по оси Ох
+            values2 (list): значения второго графика по оси Ох
+            title (str): заголовок гистограммы
+            xlabels (list): подписи по оси Ох
+            label1 (str): легенда для значений первого графика
+            label2 (str): легенда для значений второго графика
+        """
         x = np.arange(len(xlabels))
         width = 0.35
 
@@ -126,6 +186,12 @@ class Report:
         ax.tick_params(axis='both', labelsize=8)
 
     def plot_salaries_by_years_chart(self, ax, years_statistics):
+        """Строит график уровня зарплат по годам
+
+           Args:
+               ax (matplotlib.axes.Axes): область изображения, которую будет занимать гистограмма
+               years_statistics (dict): данные статистики по годам
+        """
         years = list(years_statistics['salary_all'].keys())
         salaries_all = list(years_statistics['salary_all'].values())
         salaries_job = list(years_statistics['salary_job'].values())
@@ -135,6 +201,12 @@ class Report:
                             'средняя з/п', f"з/п {self.job.lower()}")
 
     def plot_vacancies_by_years_chart(self, ax, years_statistics):
+        """Строит график количества вакансий по годам
+
+           Args:
+                ax (matplotlib.axes.Axes): область изображения, которую будет занимать гистограмма
+                years_statistics (dict): данные статистики по годам
+        """
         years = list(years_statistics['number_all'].keys())
         number_all = list(years_statistics['number_all'].values())
         number_job = list(years_statistics['number_job'].values())
@@ -145,6 +217,12 @@ class Report:
                             f"Количество вакансий\n{self.job.lower()}")
 
     def format_cities_labels(self, cities):
+        """Форматирует подписи с названиями городов, добавляя переносы слов
+        для городов, состоящих из нескольких слов, разделенных пробелом или дефисом
+
+           Args:
+               cities (list): названия городов
+        """
         result = []
         for city in cities:
             if '-' in city:
@@ -158,6 +236,13 @@ class Report:
         return result
 
     def plot_salaries_by_cities_chart(self, ax, cities_statistics):
+        """Строит горизонтальную столбчатую диаграмму по данным
+        об уровне зарплат по городам
+
+            Args:
+                ax (matplotlib.axes.Axes): область изображения, которую будет занимать диаграмма
+                cities_statistics (dict): данные статистики по городам
+        """
         cities = self.format_cities_labels(
             list(cities_statistics['salary'].keys()))
         salaries = list(cities_statistics['salary'].values())
@@ -172,6 +257,12 @@ class Report:
         ax.grid(True, axis="x")
 
     def plot_vacancies_by_cities_chart(self, ax, cities_statistics):
+        """Строит круговую диаграмму соотношения количества вакансий по городам
+
+           Args:
+               ax (matplotlib.axes.Axes): область изображения, которую будет занимать диаграмма
+               cities_statistics (dict): данные статистики по городам
+        """
         cities = list(cities_statistics['proportion'].keys())
         vacancies = list(cities_statistics['proportion'].values())
 
@@ -184,6 +275,12 @@ class Report:
         ax.set_title('Доля вакансий по городам')
 
     def generate_image(self, years, cities):
+        """Генерирует изображение с графиками статистики
+
+           Args:
+               years (dict): статистика по годам
+               cities( dict): статистика по городам
+        """
         fig, axes = plt.subplots(2, 2)
 
         self.plot_salaries_by_years_chart(axes[0, 0], years)
@@ -197,6 +294,12 @@ class Report:
         plt.savefig('graph.png',dpi=300)
 
     def fill_pdf_with_data(self, template, config):
+        """Заполняет pdf-файл данными по статистике
+
+           Args:
+               template (Template): шаблон отчета в формате html
+               config (Configuration): настройки конфигурации для преобразования файла из html в pdf
+        """
         img_file = 'D:\\ИРИТ\\2 курс\\питон\\Раздел 2\\Тема 1\\Пдф\\graph.png'
 
         sheet_names = self.wb.sheetnames
@@ -212,6 +315,12 @@ class Report:
         pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": ""})
 
     def generate_pdf(self, years, cities):
+        """Генерирует отчет в виде pdf-файла с данными статистики по выбранной профессии
+
+           Args:
+               years (dict): статистика по годам
+               cities( dict): статистика по городам
+        """
         self.generate_excel(years, cities)
         self.generate_image(years, cities)
 
@@ -222,6 +331,8 @@ class Report:
         self.fill_pdf_with_data(template, config)
 
 def get_report():
+    """Создает отчет с данными статистики по выбранной профессии"""
+
     file_name = input('Введите название файла: ')
     job = input('Введите название профессии: ')
 

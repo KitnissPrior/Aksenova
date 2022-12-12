@@ -9,4 +9,3 @@ if data_format == 'Вакансии':
     print('Введите данные для печати:')
     vac_table.get_vacancies_table()
 
-a = 2
