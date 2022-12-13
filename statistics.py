@@ -1,5 +1,6 @@
 import math
 import csv_reader as reader
+import doctest
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
@@ -101,6 +102,10 @@ class Salary:
 
             Returns:
                 float: средняя зарплата в рублях
+        >>> Salary(10,20,'USD').convert_to_rub()
+        909.9
+        >>> Salary(10.2,40.2,'RUR').convert_to_rub()
+        25.0
         """
         average_salary = (float(self.salary_to) + float(self.salary_from)) // 2
         return average_salary * self.currency_to_rub[self.salary_currency]
@@ -200,16 +205,17 @@ class InputConnect:
         """
         return sorted(cities.items(), key=lambda item: item[1], reverse=True)
 
-    def sort_cities(self, cities):
-        """Сортирует данные статистики и берет только первые 10 значений
+    def sort_cities(self, cities, cities_count):
+        """Сортирует данные статистики и берет только первые cities_count значений
 
             Args:
                 cities (dict): данные статистики по городам
+                cities_count (int): количество элементов,до которого нужно обрезать данные после сортировки
             Returns:
                 dict: первые 10 значений отсортированных данных статистики
         """
         sorted_list = self.sort_cities_by_value(cities)
-        result = sorted_list[0:10]
+        result = sorted_list[0:cities_count]
         cities = [item[0] for item in result]
         values = [item[1] for item in result]
 
@@ -256,8 +262,8 @@ class InputConnect:
                     sum_salaries = sum([float(vac.salary) for vac in vacancies])
                     salary_level[city[0]] = int(sum_salaries // len(vacancies))
 
-        salary_level = self.sort_cities(salary_level)
-        vac_proportion = self.sort_cities(vac_proportion)
+        salary_level = self.sort_cities(salary_level, 10)
+        vac_proportion = self.sort_cities(vac_proportion, 10)
         return salary_level, vac_proportion
 
     def print_statistics(self, years, cities):

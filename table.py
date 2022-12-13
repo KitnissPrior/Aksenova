@@ -159,6 +159,10 @@ class Salary:
 
            Returns:
                float: средняя зарплата в рублях
+        >>> Salary(10,20,'True','KGS').convert_to_rub()
+        11.4
+        >>> Salary(10.2,40.2,'True','RUR').convert_to_rub()
+        25.0
         """
         average_salary = (float(self.salary_to) + float(self.salary_from)) // 2
         return average_salary * self.currency_to_rub[self.salary_currency]
@@ -299,7 +303,8 @@ class InputConnect:
         return number
 
     """Возвращает одно значение из двух (val1, val2) 
-    в зависимости от аргумента х(str): истина или ложь"""
+    в зависимости от аргумента х(str): истина или ложь    
+    """
     set_value = lambda self, x, val1, val2: val1 if x == 'True' else val2
 
     def formatter(self, vac):
@@ -571,5 +576,7 @@ def get_vacancies_table():
         print(error_message)
     if os.stat(file_name).st_size == 0:
         print('Пустой файл')
-    elif error_message == '':
+        return False
+    if error_message == '':
         data_set.connector.print_result(data_set, filter_param, sort_param, is_reversed, numbers, columns)
+        return True
