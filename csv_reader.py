@@ -1,5 +1,6 @@
 import re
 import csv
+import os
 
 def csv_reader(file_name):
     """Считывает данные из csv-файла
@@ -13,7 +14,7 @@ def csv_reader(file_name):
     with open(file_name, 'r', encoding='utf-8-sig') as file:
         data = list(csv.reader(file))
 
-        titles = data[0]
+        titles = data[0] if (os.stat(file_name).st_size != 0) else []
         count = len(titles)
         rows = [row for row in data[1:] if '' not in row and len(row) == count]
         return rows, titles
@@ -25,7 +26,7 @@ def clear_str(str_value):
            str_value (str): входная строка
        Returns:
            str: строка без html-тегов
-        """
+    """
     return ' '.join(re.sub(r"\<[^>]*\>", '', str_value).split())
 
 def csv_filer(rows, titles, create_vacancy):
