@@ -1,6 +1,5 @@
 import math
 import csv_reader as reader
-import doctest
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
