@@ -8,6 +8,8 @@ from prettytable import PrettyTable
 import csv_reader as reader
 import cProfile
 from dateutil.parser import parse as dt_parser
+import maya
+import arrow
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
@@ -229,7 +231,7 @@ class InputConnect:
         'Гривны': 'UAH', 'Доллары': 'USD', 'Узбекский сум': 'UZS'}
 
     def profile(func):
-        """Декоратор для профилизатора"""
+        """Профилизатор"""
         def wrapper(*args, **kwargs):
             profile_filename = func.__name__ + '.prof'
             profiler = cProfile.Profile()
@@ -238,8 +240,47 @@ class InputConnect:
             return result
         return wrapper
 
+    '''
+    def make_date_format_strptime(self, str_date):
+        parts = str_date.split('T')
+        time = parts[1]
+        operation = time[8]
+
+        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
+        date = module_dt.strptime(f"{parts[0]} {time[0:8]}", "%Y-%m-%d %H:%M:%S")
+
+        return date + delta if operation == '+' else date - delta
+
+    def make_date_format_arrow(self, str_date):
+        date = arrow.get(str_date)
+        parts = str_date.split('T')
+        time = parts[1]
+        operation = time[8]
+        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
+
+        return date + delta if operation == '+' else date - delta
+    
+    def make_date_format_maya(self, str_date):
+        date = maya.parse(str_date).datetime()
+
+        parts = str_date.split('T')
+        time = parts[1]
+        operation = time[8]
+        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
+
+        return date + delta if operation == '+' else date - delta
+    '''
+
     @profile
     def make_date_format_util_parser(self, str_date):
+        """Преобразует дату и время из строки в формат даты-времени с помощью
+        утилиты dateutil.parser
+
+        Args:
+            str_date (str): дата и время
+        Returns:
+             datetime.datetime: дата и время с учетом часового пояса
+        """
         date = dt_parser(str_date, ignoretz=True)
 
         parts = str_date.split('T')
