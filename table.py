@@ -6,6 +6,8 @@ from datetime import datetime as module_dt
 import prettytable
 from prettytable import PrettyTable
 import csv_reader as reader
+import cProfile
+from dateutil.parser import parse as dt_parser
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
@@ -226,6 +228,27 @@ class InputConnect:
         'Киргизский сом': 'KGS', 'Тенге': 'KZT', 'Рубли': 'RUR',
         'Гривны': 'UAH', 'Доллары': 'USD', 'Узбекский сум': 'UZS'}
 
+    def profile(func):
+        """Декоратор для профилизатора"""
+        def wrapper(*args, **kwargs):
+            profile_filename = func.__name__ + '.prof'
+            profiler = cProfile.Profile()
+            result = profiler.runcall(func, *args, **kwargs)
+            profiler.dump_stats(profile_filename)
+            return result
+        return wrapper
+
+    @profile
+    def make_date_format_util_parser(self, str_date):
+        date = dt_parser(str_date, ignoretz=True)
+
+        parts = str_date.split('T')
+        time = parts[1]
+        operation = time[8]
+        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
+
+        return date + delta if operation == '+' else date - delta
+
     def sort_by_date(self, vacancy):
         """Сортирует вакансии по дате публикации вакансии
 
@@ -234,17 +257,7 @@ class InputConnect:
            Returns:
                datetime: дата публикации вакансии
         """
-        parts = vacancy.published_at.split('T')
-        time = parts[1]
-
-        operation = time[8]
-        delta_hours = int(time[9:11])
-        delta_minutes = int(time[11::])
-
-        delta = datetime.timedelta(hours=delta_hours, minutes=delta_minutes)
-        date = module_dt.strptime(f"{parts[0]} {time[0:8]}", "%Y-%m-%d %H:%M:%S")
-
-        return date + delta if operation == '+' else date - delta
+        return self.make_date_format_util_parser(vacancy.published_at)
 
     def sort_by_skills(self, vacancy):
         """Сортирует вакансии по количеству навыков
