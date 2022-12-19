@@ -1,7 +1,7 @@
 import re
 import csv
 import os
-
+import csv_parts_creator as files_parser
 def csv_reader(file_name):
     """Считывает данные из csv-файла
 

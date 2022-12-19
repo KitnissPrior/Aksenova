@@ -1,5 +1,6 @@
 import math
 import csv_reader as reader
+import csv_parts_creator as files_creator
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
@@ -37,6 +38,7 @@ class DataSet:
         """Считывает данные из csv-файла и форматирует их"""
 
         rows, titles = reader.csv_reader(self.file_name)
+        files_creator.parse_by_years(rows,titles)
         self.vacancies_objects = reader.csv_filer(rows, titles, self.create_vacancy)
 
 class Vacancy:
