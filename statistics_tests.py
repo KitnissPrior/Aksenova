@@ -1,9 +1,9 @@
 from unittest import TestCase
-from statistics import Vacancy, DataSet, InputConnect
+from statistics import Vacancy, DataSet
 
 class Statistics_Test(TestCase):
-    dataset= DataSet("vacancies.csv")
-    connector = InputConnect(dataset)
+    dataset= DataSet("vacancies.csv", "Программист")
+    connector = dataset.connector
     vacancies = []
     vacancies.append(Vacancy('Программист', 1000, 'Екатеринбург', '2022'))
     vacancies.append(Vacancy('Аналитик', 1000, 'Екатеринбург', '2021'))
@@ -17,13 +17,7 @@ class Statistics_Test(TestCase):
         self.assertEqual(self.connector.count_vacancies_by_cities(self.vacancies), {'Екатеринбург': 2, 'Томск':1})
     def test_count_vacancies_by_cities_empty_list(self):
         self.assertEqual(self.connector.count_vacancies_by_cities([]), {})
-    def test_get_vacancies_by_age(self):
-        self.assertEqual(len(self.connector.get_vacancies_by_age('2022',self.vacancies)),2)
-    def test_get_vacancies_by_age_check_vac_name(self):
-        self.assertEqual(self.connector.get_vacancies_by_age('2021', self.vacancies)[0].name, 'Аналитик')
     def test_get_salary_by_age(self):
-        self.assertEqual(self.connector.get_salary_by_age('2022', self.vacancies),1100)
-    def test_get_salary_by_age_no_age(self):
-        self.assertEqual(self.connector.get_salary_by_age('3022', self.vacancies), 0)
+        self.assertEqual(self.connector.get_salary_by_age(self.vacancies),1066)
 
 

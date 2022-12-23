@@ -628,6 +628,7 @@ def get_vacancies_table():
 
     if error_message != '':
         print(error_message)
+        return False
     if os.stat(file_name).st_size == 0:
         print('Пустой файл')
         return False

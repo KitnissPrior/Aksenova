@@ -332,13 +332,13 @@ class Report:
 
 def get_report():
     """Создает отчет с данными статистики по выбранной профессии"""
-
-    file_name = input('Введите название файла: ')
+    folder_name = input('Введите название папки: ')
     job = input('Введите название профессии: ')
 
-    data_set = stats.DataSet(file_name)
+    data_set = stats.DataSet(folder_name, job)
     data_set.parse_csv()
-    years, cities = data_set.connector.get_statistics(data_set.vacancies_objects, job)
+    years, cities = data_set.connector.get_statistics()
 
     report = Report(job)
     report.generate_pdf(years, cities)
+
