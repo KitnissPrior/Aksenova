@@ -15,6 +15,7 @@ class TableVacanciesTest(TestCase):
     def test_sort_by_date(self):
         self.assertEqual(self.connector.sort_by_date(self.vacancy_programmer),
                          module_dt(2022, 5, 31, 20, 32, 31))
+
     def test_sort_by_one_skill(self):
         self.assertEqual(self.connector.sort_by_skills(self.vacancy_programmer), 1)
     def test_sort_by_two_skills(self):

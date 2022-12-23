@@ -50,3 +50,18 @@ def csv_filer(rows, titles, create_vacancy):
         vacancy_dict = dict(zip(titles, rows[line]))
         result.append(create_vacancy(vacancy_dict))
     return result
+
+def csv_filter(rows, titles, create_vacancy):
+    result = []
+    for row in rows:
+        vac_dict = {}
+        for i in range(len(row)):
+            field = clear_str(row[i])
+            if field.find("\n") != -1:
+                field = field.split('\n')
+                field = [' '.join(x.split()) for x in field]
+            else:
+                field = ' '.join(field.split())
+            vac_dict[titles[i]] = field
+        result.append(create_vacancy(vac_dict))
+    return result

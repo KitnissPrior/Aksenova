@@ -1,24 +1,29 @@
 import math
 import csv_reader as reader
 import csv_parts_creator as files_creator
-
+from multiprocessing import Pool
+import multiprocessing
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
 
         Attributes:
+            folder_name (str): имя папки, содержащей файлы с данными по годам
+            job (str): название профессии, по которой нужно получить статистику
             file_name (str): имя файла, из которого считываются данные
             vacancies_objects (list): список вакансий
             connector (InputConnect): объект, отвечающий за формирование данных статистики
     """
-    def __init__(self, file_name):
+    def __init__(self, folder_name, job):
         """Инициализирует объект DataSet
 
            Args:
-                file_name (str): имя файла, из которого считываются данные
+                folder_name (str): имя папки, содержащей файлы с данными по годам
+                job (str): название профессии, по которой нужно получить статистику
         """
-        self.file_name = file_name
+        self.folder_name = folder_name
+        self.file_name = 'vacancies.csv'
         self.vacancies_objects = []
-        self.connector = InputConnect(self)
+        self.connector = InputConnect(self,job)
 
     def create_vacancy(self, vac_dict):
         """Создает объект Vacancy
@@ -35,8 +40,7 @@ class DataSet:
                        int(vac_dict['published_at'][0:4]))
 
     def parse_csv(self):
-        """Считывает данные из csv-файла и форматирует их"""
-
+        """Считывает данные из csv-файла и разбивает их на отдельные файлы по годам"""
         rows, titles = reader.csv_reader(self.file_name)
         files_creator.parse_by_years(rows,titles)
         self.vacancies_objects = reader.csv_filer(rows, titles, self.create_vacancy)
@@ -116,85 +120,81 @@ class InputConnect:
 
         Attributes:
             data_set (DataSet): набор данных по вакансиям
+            job (str): название профессии, по которой нужно получить статистик
     """
-    def __init__(self, data_set):
+    def __init__(self, data_set, job):
         """Инициализирует объект InputConnect
 
             Args:
                 data_set (DataSet): набор данных по вакансиям
+                job (str): название профессии, по которой нужно получить статистик
         """
         self.data_set = data_set
+        self.job = job
 
-    def get_all_ages(self, list_objects):
-        """Получает список неповторяющихся дат, в которые были опубликованы все вакансии
-
-            Args:
-                list_objects (list): список вакансий
-            Returns:
-                list: даты публикации вакансий
-        """
-        return list(set([vac.published_at for vac in list_objects]))
-
-    def get_vacancies_by_age(self, age, list_objects):
-        """Получает список вакансий, опубликованных в заданный год
-
-           Args:
-               age (str): год публикации
-               list_objects (list): список вакансий
-           Returns:
-               list: отфильтрованный список вакансий, опубликованных в заданный год
-        """
-        return list(filter(lambda vac: vac.published_at == age, list_objects))
-
-    def count_vacancies_by_ages(self, ages, all_objects, job_objects):
-        """Считает количество вакансий, опубликованных за каждый год периода
-
-           Args:
-               ages (list): года публикации вакансий
-               all_objects (list): список всех вакансий
-               job_objects (list): список вакансий для выбранной профессии
-            Returns:
-                tuple: (статистика по годам для всех вакансий, статистика по годам для выбранной профессии)
-        """
-        statistics_job = {}
-        statistics_all = {}
-        for age in ages:
-            statistics_job[age] = len(self.get_vacancies_by_age(age, job_objects))
-            statistics_all[age] = len(self.get_vacancies_by_age(age, all_objects))
-        return statistics_all, statistics_job
-
-    def get_salary_by_age(self, age, list_objects):
+    def get_salary_by_age(self, vacancies):
         """Получает среднюю зарплату в заданный год
 
            Args:
-               age (str): год публикации вакансии
-               list_objects (list): список вакансий
+               vacancies (list): список вакансий
             Returns:
                 int: средняя зарплата в заданный год
         """
-        vacancies = self.get_vacancies_by_age(age, list_objects)
         if len(vacancies) == 0:
             return 0
         sum_salaries = sum([float(vac.salary) for vac in vacancies])
         return int(sum_salaries // len(vacancies))
 
-    def get_salary_by_ages(self, ages, all_objects, job_objects):
-        """Получает статистику по уровню зарплат по годам
+    def join_statistics_by_years(self, data_dict):
+        sorted(data_dict.items())
+        salary_all = {}
+        number_all = {}
+        salary_job = {}
+        number_job = {}
+        for item in data_dict.items():
+            salary_all[item[0]] = item[1]['salary_all']
+            number_all[item[0]] = item[1]['number_all']
+            salary_job[item[0]] = item[1]['salary_job']
+            number_job [item[0]] = item[1]['number_job']
 
-            Args:
-                ages (list): список лет, когда были опубликованы вакансии
-                all_objects (list): список всех вакансий
-                job_objects (list): список вакансий для выбранной профессии
-            Returns:
-                tuple: (статистика по уровню зарплат по годам для всех вакансий,
-                        статистика по уровню зарплат по годам для выбранной профессии)
-        """
-        statistics_job = {}
-        statistics_all = {}
-        for age in ages:
-            statistics_job[age] = self.get_salary_by_age(age, job_objects)
-            statistics_all[age] = self.get_salary_by_age(age, all_objects)
-        return statistics_all, statistics_job
+        return {'salary_all': salary_all,
+                'number_all': number_all,
+                'salary_job': salary_job,
+                'number_job': number_job}
+
+    def get_statistics_by_year(self, year):
+        file_path = f"{self.data_set.folder_name}/{year}.csv"
+        rows,titles = reader.csv_reader(file_path)
+        vac_list = reader.csv_filer(rows, titles, self.data_set.create_vacancy)
+        job_list = list(filter(lambda vac: self.job in vac.name, vac_list))
+
+        '''stats_dict[year] = {'salary_all': self.get_salary_by_age(vac_list),
+                           'number_all': len(vac_list),
+                           'salary_job': self.get_salary_by_age(job_list),
+                           'number_job': len(job_list),}'''
+        return {'year': year,
+                'salary_all': self.get_salary_by_age(vac_list),
+                'number_all': len(vac_list),
+                'salary_job': self.get_salary_by_age(job_list),
+                'number_job': len(job_list),}
+
+    def run_multiprocessing(self):
+        years = [str(year) for year in range(2007, 2023)]
+        '''manager = multiprocessing.Manager()
+        res = manager.dict()
+        processes = []
+        for year in years:
+            p = multiprocessing.Process(target=self.get_statistics_by_year, args=(year, res))
+            processes.append(p)
+            p.start()
+        [p.join() for p in processes]'''
+        pool = Pool(processes=2)
+        stats_list = pool.map(self.get_statistics_by_year, years)
+        res = {v['year']:v for v in stats_list}
+        '''pool = Pool()
+        list_res = pool.map_async(self.get_statistics_by_year, range(2007, 2023)).get()
+        res = {v['year']: v for v in list_res}'''
+        return self.join_statistics_by_years(res)
 
     def sort_cities_by_value(self, cities):
         """Сортирует данные статистики по городам по убыванию
@@ -281,30 +281,17 @@ class InputConnect:
         print(f"Уровень зарплат по городам (в порядке убывания): {cities['salary']}")
         print(f"Доля вакансий по городам (в порядке убывания): {cities['proportion']}")
 
-    def get_statistics(self, vac_objects, job):
+    def get_statistics(self):
         """Получает статистические данные по вакансиям и для выбранной профессии
 
-           Args:
-               vac_objects (list): список вакансий
-               job (str): название выбранной профессии
            Returns:
                tuple: (статистика по годам, статистика по городам)
         """
-        job_objects = list(filter(lambda vac: job in vac.name, vac_objects))
-        ages = self.get_all_ages(vac_objects)
-        ages.sort()
-
-        number_all, number_job = self.count_vacancies_by_ages(ages, vac_objects, job_objects)
-        salary_all, salary_job = self.get_salary_by_ages(ages, vac_objects, job_objects)
-        salary_cities, proportion_cities = self.get_statistics_by_cities(vac_objects)
-
-        years_statistics = {'salary_all': salary_all,
-                            'number_all': number_all,
-                            'salary_job': salary_job,
-                            'number_job': number_job}
+        years_statistics = self.run_multiprocessing()
+        salary_cities, proportion_cities = self.get_statistics_by_cities(self.data_set.vacancies_objects)
 
         cities_statistics = {'salary': salary_cities,
-                             'proportion': proportion_cities}
+                            'proportion': proportion_cities}
 
         self.print_statistics(years_statistics, cities_statistics)
         return years_statistics, cities_statistics
