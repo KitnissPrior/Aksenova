@@ -146,6 +146,14 @@ class InputConnect:
         return int(sum_salaries // len(vacancies))
 
     def join_statistics_by_years(self, data_dict):
+        """Объединяет данные статистики по годам
+
+            Args:
+                data_dict (dict) : словарь с данными статистики
+            Returns:
+                dict: уровень зарплат по годам для всех вакансий и для выбранной профессии,
+                количество вакансий по годам для всех вакансий и для выбранной профессии
+        """
         sorted(data_dict.items())
         salary_all = {}
         number_all = {}
@@ -163,15 +171,19 @@ class InputConnect:
                 'number_job': number_job}
 
     def get_statistics_by_year(self, year):
+        """Получает количество вакансий и уровень зарплат для всех вакансий
+        и для выбранной профессии за один год
+
+            Args:
+                year (string) : год
+            Returns:
+                dict: количество вакансий и уровень зарплат для всех вакансий
+        и для выбранной профессии за один год
+        """
         file_path = f"{self.data_set.folder_name}/{year}.csv"
         rows,titles = reader.csv_reader(file_path)
         vac_list = reader.csv_filer(rows, titles, self.data_set.create_vacancy)
         job_list = list(filter(lambda vac: self.job in vac.name, vac_list))
-
-        '''stats_dict[year] = {'salary_all': self.get_salary_by_age(vac_list),
-                           'number_all': len(vac_list),
-                           'salary_job': self.get_salary_by_age(job_list),
-                           'number_job': len(job_list),}'''
         return {'year': year,
                 'salary_all': self.get_salary_by_age(vac_list),
                 'number_all': len(vac_list),
@@ -179,6 +191,7 @@ class InputConnect:
                 'number_job': len(job_list),}
 
     def run_multiprocessing(self):
+        """Запускает обработку данных по годам, используя параллельные процессы"""
         years = [str(year) for year in range(2007, 2023)]
         '''manager = multiprocessing.Manager()
         res = manager.dict()
