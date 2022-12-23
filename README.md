@@ -19,3 +19,6 @@
 но, увы, ни один из них не привел к ускорению работы программы. Возможно, причина не в коде,
 а в моем медленном ноутбуке:(
 ![img.png](screenshots/img_10.png)
+3.3.1
+![img.png](screenshots/img_11.png)
+![img.png](screenshots/img_12.png)

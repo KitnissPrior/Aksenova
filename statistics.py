@@ -2,7 +2,7 @@ import math
 import csv_reader as reader
 import csv_parts_creator as files_creator
 from multiprocessing import Pool
-import multiprocessing
+from currency import Currency
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
 
@@ -21,7 +21,7 @@ class DataSet:
                 job (str): название профессии, по которой нужно получить статистику
         """
         self.folder_name = folder_name
-        self.file_name = 'vacancies.csv'
+        self.file_name = 'vacancies_dif_currencies.csv'
         self.vacancies_objects = []
         self.connector = InputConnect(self,job)
 
@@ -38,10 +38,13 @@ class DataSet:
         salary = salary.convert_to_rub()
         return Vacancy(vac_dict['name'], salary, vac_dict['area_name'],
                        int(vac_dict['published_at'][0:4]))
-
     def parse_csv(self):
         """Считывает данные из csv-файла и разбивает их на отдельные файлы по годам"""
         rows, titles = reader.csv_reader(self.file_name)
+
+        currency = Currency(rows, titles.index('salary_currency'))
+        rows = currency.process_currencies(titles.index('published_at'))
+
         files_creator.parse_by_years(rows,titles)
         self.vacancies_objects = reader.csv_filer(rows, titles, self.create_vacancy)
 
@@ -193,20 +196,10 @@ class InputConnect:
     def run_multiprocessing(self):
         """Запускает обработку данных по годам, используя параллельные процессы"""
         years = [str(year) for year in range(2007, 2023)]
-        '''manager = multiprocessing.Manager()
-        res = manager.dict()
-        processes = []
-        for year in years:
-            p = multiprocessing.Process(target=self.get_statistics_by_year, args=(year, res))
-            processes.append(p)
-            p.start()
-        [p.join() for p in processes]'''
-        pool = Pool(processes=2)
+
+        pool = Pool(processes=1)
         stats_list = pool.map(self.get_statistics_by_year, years)
         res = {v['year']:v for v in stats_list}
-        '''pool = Pool()
-        list_res = pool.map_async(self.get_statistics_by_year, range(2007, 2023)).get()
-        res = {v['year']: v for v in list_res}'''
         return self.join_statistics_by_years(res)
 
     def sort_cities_by_value(self, cities):

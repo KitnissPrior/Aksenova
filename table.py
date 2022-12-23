@@ -2,14 +2,10 @@ import re
 import os
 import math
 import datetime
-from datetime import datetime as module_dt
 import prettytable
 from prettytable import PrettyTable
 import csv_reader as reader
-import cProfile
-from dateutil.parser import parse as dt_parser
-import maya
-import arrow
+import date_converter as dt_converter
 
 class DataSet:
     """Класс для представления набора данных статистики по вакансиям
@@ -230,66 +226,6 @@ class InputConnect:
         'Киргизский сом': 'KGS', 'Тенге': 'KZT', 'Рубли': 'RUR',
         'Гривны': 'UAH', 'Доллары': 'USD', 'Узбекский сум': 'UZS'}
 
-    def profile(func):
-        """Профилизатор"""
-        def wrapper(*args, **kwargs):
-            profile_filename = func.__name__ + '.prof'
-            profiler = cProfile.Profile()
-            result = profiler.runcall(func, *args, **kwargs)
-            profiler.dump_stats(profile_filename)
-            return result
-        return wrapper
-
-    '''
-    def make_date_format_strptime(self, str_date):
-        parts = str_date.split('T')
-        time = parts[1]
-        operation = time[8]
-
-        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
-        date = module_dt.strptime(f"{parts[0]} {time[0:8]}", "%Y-%m-%d %H:%M:%S")
-
-        return date + delta if operation == '+' else date - delta
-
-    def make_date_format_arrow(self, str_date):
-        date = arrow.get(str_date)
-        parts = str_date.split('T')
-        time = parts[1]
-        operation = time[8]
-        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
-
-        return date + delta if operation == '+' else date - delta
-    
-    def make_date_format_maya(self, str_date):
-        date = maya.parse(str_date).datetime()
-
-        parts = str_date.split('T')
-        time = parts[1]
-        operation = time[8]
-        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
-
-        return date + delta if operation == '+' else date - delta
-    '''
-
-    @profile
-    def make_date_format_util_parser(self, str_date):
-        """Преобразует дату и время из строки в формат даты-времени с помощью
-        утилиты dateutil.parser
-
-        Args:
-            str_date (str): дата и время
-        Returns:
-             datetime.datetime: дата и время с учетом часового пояса
-        """
-        date = dt_parser(str_date, ignoretz=True)
-
-        parts = str_date.split('T')
-        time = parts[1]
-        operation = time[8]
-        delta = datetime.timedelta(hours=int(time[9:11]), minutes=int(time[11::]))
-
-        return date + delta if operation == '+' else date - delta
-
     def sort_by_date(self, vacancy):
         """Сортирует вакансии по дате публикации вакансии
 
@@ -298,7 +234,7 @@ class InputConnect:
            Returns:
                datetime: дата публикации вакансии
         """
-        return self.make_date_format_util_parser(vacancy.published_at)
+        return dt_converter.convert_to_date(vacancy.published_at)
 
     def sort_by_skills(self, vacancy):
         """Сортирует вакансии по количеству навыков
