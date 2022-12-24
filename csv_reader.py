@@ -1,7 +1,7 @@
 import re
 import csv
 import os
-import csv_parts_creator as files_parser
+
 def csv_reader(file_name):
     """Считывает данные из csv-файла
 
@@ -16,8 +16,12 @@ def csv_reader(file_name):
 
         titles = data[0] if (os.stat(file_name).st_size != 0) else []
         count = len(titles)
-        rows = [row for row in data[1:] if '' not in row and len(row) == count]
-        return rows, titles
+
+        all_rows = data[1:]
+        rows = [row for row in all_rows if '' not in row and len(row) == count]
+        return {'all_rows': all_rows,
+                'rows': rows,
+                'titles': titles}
 
 def clear_str(str_value):
     """Очищает строку от html-тегов

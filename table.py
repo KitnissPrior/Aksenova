@@ -57,7 +57,9 @@ class DataSet:
            Args:
                input_data (dict): параметры фильтрации и сортировки
         """
-        rows, titles = reader.csv_reader(self.file_name)
+        data = reader.csv_reader(self.file_name)
+        rows = data['rows']
+        titles = data['titles']
         self.vacancies_objects = reader.csv_filer(rows, titles, self.create_vacancy)
         if len(self.vacancies_objects) == 0:
             print('Нет данных')

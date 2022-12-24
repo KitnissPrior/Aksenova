@@ -21,7 +21,7 @@ class DataSet:
                 job (str): название профессии, по которой нужно получить статистику
         """
         self.folder_name = folder_name
-        self.file_name = 'vacancies_dif_currencies.csv'
+        self.file_name = 'csv/vacancies_dif_currencies.csv'
         self.vacancies_objects = []
         self.connector = InputConnect(self,job)
 
@@ -40,12 +40,15 @@ class DataSet:
                        int(vac_dict['published_at'][0:4]))
     def parse_csv(self):
         """Считывает данные из csv-файла и разбивает их на отдельные файлы по годам"""
-        rows, titles = reader.csv_reader(self.file_name)
+        data = reader.csv_reader(self.file_name)
+        all_rows = data['all_rows']
+        rows = data['rows']
+        titles = data['titles']
 
-        currency = Currency(rows, titles.index('salary_currency'))
+        currency = Currency(all_rows, titles.index('salary_currency'))
         rows = currency.process_currencies(titles.index('published_at'))
 
-        files_creator.parse_by_years(rows,titles)
+        files_creator.parse_by_years(all_rows,titles)
         self.vacancies_objects = reader.csv_filer(rows, titles, self.create_vacancy)
 
 class Vacancy:

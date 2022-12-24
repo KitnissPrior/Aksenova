@@ -32,6 +32,8 @@ class Currency:
         dates = [convert_to_date(row[date_index]) for row in self.vacancies]
         return min(dates), max(dates)
 
+    # frequency = Counter([row[self.index] for row in self.vacancies if row[self.index] != 'RUR'])
+
     def get_currency_frequency(self):
         """Получает частотность, с которой встречаются различные валюты
 
@@ -141,5 +143,5 @@ class Uploader:
 
         frame = pd.DataFrame(self.upload_dict)
         frame.reset_index(drop=True, inplace=True)
-        frame.to_csv('currency.csv', sep=',', encoding='utf-8')
+        frame.to_csv('csv/currency.csv', sep=',', encoding='utf-8')
 

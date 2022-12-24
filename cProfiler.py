@@ -5,6 +5,3 @@ import statistics as stats
 connector = table.InputConnect(dataSet)
 date = '2022-05-31T17:32:31+0300'
 cProfile.runctx('connector.make_date_format_util_parser(date)', None, locals())'''
-
-ds = stats.DataSet('years_data', 'Программист')
-cProfile.run('ds.parse_csv()')
