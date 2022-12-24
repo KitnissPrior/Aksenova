@@ -1,5 +1,5 @@
 import cProfile
-import table
+import statistics as stats
 
 '''dataSet = table.DataSet("vacancies_table.csv")
 connector = table.InputConnect(dataSet)
