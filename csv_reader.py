@@ -1,6 +1,7 @@
 import re
 import csv
 import os
+from currency import Currency
 
 def csv_reader(file_name):
     """Считывает данные из csv-файла
@@ -33,25 +34,45 @@ def clear_str(str_value):
     """
     return ' '.join(re.sub(r"\<[^>]*\>", '', str_value).split())
 
+def add_100_vacancies_to_csv(vacancies):
+    """Добавляет первые 100 считанных вакансий в csv-файл
+
+        Args:
+            vacancies (list): строки с информацией о вакансиях
+    """
+    with open("100vacancies.csv", 'w', encoding='utf-8-sig') as f:
+        writer = csv.writer(f, lineterminator="\r")
+        writer.writerow(['name', 'salary', 'area_name','published_at'])
+        writer.writerows(vacancies)
+
 def csv_filer(rows, titles, create_vacancy):
-    """Форматирует данные, считанные из csv-файла и формирует из них
-    список объектов Vacancy
+    """Форматирует данные, считанные из csv-файла, формирует из них
+    список объектов Vacancy и записывает первые 100 строк в csv-файл
 
         Args:
             rows (list): список строк, считанных из файла
             titles (list): названия строк, считанных из файла
+            create_vacancy (function) : функция, создающая об]ект Vacancy
         Returns:
             list: список объектов Vacancy
     """
     result = []
-    for line in range(len(rows)):
-        for i in range(len(rows[line])):
-            field = rows[line][i]
+    hundred_vacancies = []
+    currency_dict = Currency.get_currency_data()
+    for line_num in range(len(rows)):
+        for i in range(len(rows[line_num])):
+            field = rows[line_num][i]
             if field.find('\n') != -1:
-                rows[line][i] = [clear_str(el) for el in field.split('\n')]
+                rows[line_num][i] = [clear_str(el) for el in field.split('\n')]
             else:
-                rows[line][i] = clear_str(field)
-        vacancy_dict = dict(zip(titles, rows[line]))
-        result.append(create_vacancy(vacancy_dict))
+                rows[line_num][i] = clear_str(field)
+        vac_dict = dict(zip(titles, rows[line_num]))
+        vacancy = create_vacancy(vac_dict, currency_dict)
+        if line_num < 100:
+            hundred_vacancies.append([vacancy.name, vacancy.salary, vacancy.area_name, vac_dict['published_at']])
+        if vacancy.salary != '':
+            result.append(vacancy)
+    add_100_vacancies_to_csv(hundred_vacancies)
     return result
+
 

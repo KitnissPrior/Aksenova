@@ -300,7 +300,7 @@ class Report:
                template (Template): шаблон отчета в формате html
                config (Configuration): настройки конфигурации для преобразования файла из html в pdf
         """
-        img_file = 'D:\\ИРИТ\\2 курс\\питон\\Раздел 2\\Тема 1\\Пдф\\graph.png'
+        img_file = 'D:\\ИРИТ\\2 курс\\питон\\Aksenova\\graph.png'
 
         sheet_names = self.wb.sheetnames
         pdf_template = template.render({'job': self.job, 'img_file': img_file,
