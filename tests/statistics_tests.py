@@ -2,7 +2,7 @@ from unittest import TestCase
 from statistics import Vacancy, DataSet
 
 class Statistics_Test(TestCase):
-    dataset= DataSet("vacancies.csv", "Программист")
+    dataset= DataSet("vacancies_diff_currencies.csv", "Программист")
     connector = dataset.connector
     vacancies = []
     vacancies.append(Vacancy('Программист', 1000, 'Екатеринбург', '2022'))

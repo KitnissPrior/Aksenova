@@ -5,6 +5,8 @@ import xmltodict
 import pandas as pd
 import requests
 import json
+import csv_reader as reader
+import datetime
 
 class Currency:
     """Представляет объект валюты
@@ -23,6 +25,21 @@ class Currency:
         self.vacancies = rows
         self.index = index
 
+    @staticmethod
+    def get_currency_data():
+        """Получает данные о вакансиях, формируя из них словарь
+        с ключами-датами и значениями-информацией о курсе валют за соответствующую дату
+
+            Returns:
+                dict : данные о курсе валют за каждый месяц
+        """
+        data = reader.csv_reader('D:/ИРИТ/2 курс/питон/Aksenova/csv/currency.csv')
+        titles = data['titles'][3::]
+        currency_dict = {}
+        for row in data['all_rows']:
+            currency_dict[row[1]] = dict(zip(titles, row[3::]))
+        return currency_dict
+
     def get_date_range(self, date_index):
         """Вычисляет диапазон дат: находит минимальную и максимальную дату в выгрузке
 
@@ -32,15 +49,13 @@ class Currency:
         dates = [convert_to_date(row[date_index]) for row in self.vacancies]
         return min(dates), max(dates)
 
-    # frequency = Counter([row[self.index] for row in self.vacancies if row[self.index] != 'RUR'])
-
     def get_currency_frequency(self):
         """Получает частотность, с которой встречаются различные валюты
 
             Returns:
                 collections.Counter: частотность, с которой встречаются валюты из выгрузки
         """
-        return Counter([row[self.index] for row in self.vacancies if row[self.index] != 'RUR'])
+        return Counter([row[self.index] for row in self.vacancies])
 
     def select_most_frequent_currencies(self):
         """Выбирает вакансии, в которых валюта встречается чаще 5000 раз в выгрузке
@@ -50,9 +65,8 @@ class Currency:
         """
         currencies = self.get_currency_frequency()
         frequent_currencies = [cur[0] for cur in currencies.items() if cur[1] > 5000]
-        currencies_with_rub = frequent_currencies + ['RUR']
-        res = [row for row in self.vacancies if row[self.index] in currencies_with_rub]
-        return frequent_currencies, res
+        vacancies = [row for row in self.vacancies if row[self.index] in frequent_currencies]
+        return frequent_currencies, vacancies
 
     def process_currencies(self, date_index):
         """Обрабатывает данные по валютам: выбирает из выгрузки вакансии с наибольшей
@@ -136,6 +150,7 @@ class Uploader:
     def copy_currencies_from_bank_to_csv(self):
         """Получает выгрузку по валютам с сайта центробанка и сохраняет в csv-файл"""
 
+        self.max_date += datetime.timedelta(weeks=4)
         for dt in rrule.rrule(rrule.MONTHLY, dtstart=self.min_date, until=self.max_date):
             currencies = self.upload_data(dt)
             month_currency = {cur['CharCode']: cur['Value'] for cur in currencies if cur['CharCode'] in self.currency_names}

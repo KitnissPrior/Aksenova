@@ -12,11 +12,13 @@ class CsvTests(TestCase):
 
     rows = [['IT аналитик', '35000.0', '45000.0', 'RUR', 'Санкт-Петербург', '2007-12-03T17:34:36+0300']]
     titles = ['name', 'salary_from', 'salary_to', 'salary_currency', 'area_name', 'published_at']
-    data_set = stats.DataSet("vacancies.csv")
+    data_set = stats.DataSet("vacancies.csv", 'Программист')
     def test_reader_one_row_in_file(self):
-        self.assertEqual(reader.csv_reader("vacancies_one_row.csv"),(self.rows,self.titles))
+        self.assertEqual(reader.csv_reader("D:/ИРИТ/2 курс/питон/Aksenova/csv/vacancies_one_row.csv"),
+                         {'all_rows':self.rows, 'rows': self.rows, 'titles': self.titles})
     def test_reader_empty_file(self):
-        self.assertEqual(reader.csv_reader("vacancies_empty.csv"),([],[]))
+        self.assertEqual(reader.csv_reader("D:/ИРИТ/2 курс/питон/Aksenova/csv/vacancies_empty.csv"),
+                         {'all_rows': [], 'rows': [], 'titles': []})
     def test_csv_filter_empty_data(self):
         self.assertEqual(len(reader.csv_filer([], [], self.data_set.create_vacancy)), 0)
     def test_csv_filter_one_vacancy(self):
